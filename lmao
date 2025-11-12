@@ -1,0 +1,98 @@
+repeat task.wait() until game:IsLoaded()
+
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local LocalPlayer = Players.LocalPlayer
+
+local function getRootPart()
+    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    return character:WaitForChild("HumanoidRootPart")
+end
+
+local function findNearestDefault()
+    local pickups = workspace:FindFirstChild("Pickups") or workspace:FindFirstChild("ActivePickups")
+    if not pickups then return nil end
+    local nearest
+    local minDist = math.huge
+    local hrpPos = getRootPart().Position
+    for _, v in ipairs(pickups:GetChildren()) do
+        if v:IsA("BasePart") and v.Name == "Default" then
+            local dist = (v.Position - hrpPos).Magnitude
+            if dist < minDist then
+                minDist = dist
+                nearest = v
+            end
+        end
+    end
+    return nearest
+end
+
+local function isDefaultRemaining()
+    return findNearestDefault() ~= nil
+end
+
+local function serverHop()
+    local success, result = pcall(function()
+        return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))
+    end)
+    if success and result and result.data then
+        for _, server in pairs(result.data) do
+            if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id)
+                break
+            end
+        end
+    end
+end
+
+local function autoTeleportLoop()
+    local utility = workspace:FindFirstChild("Utility")
+    local obbyColliders = utility and utility:FindFirstChild("ObbyColliders")
+
+    local hrp = getRootPart()
+
+    -- 1️⃣ TP GameStart
+    if obbyColliders then
+        local gameStart = obbyColliders:FindFirstChild("GameStart")
+        if gameStart then
+            hrp.CFrame = gameStart.CFrame + Vector3.new(0,1,0)
+            task.wait()
+        end
+    end
+
+    -- 2️⃣ TP Default liên tục, bám vào Default
+    while isDefaultRemaining() do
+        local nearestDefault = findNearestDefault()
+        if nearestDefault then
+            -- Cập nhật liên tục vị trí gần Default
+            hrp.CFrame = nearestDefault.CFrame + Vector3.new(0,1,0)
+        end
+        task.wait()
+    end
+
+    -- 3️⃣ Chờ 143 giây
+    wait(143)
+
+    -- 4️⃣ TP StopGame
+    local stopGame = obbyColliders and obbyColliders:FindFirstChild("StopGame")
+    if stopGame then
+        hrp.CFrame = stopGame.CFrame + Vector3.new(0,1,0)
+        task.wait()
+    end
+
+    -- 5️⃣ TP Portal_to_Wc
+    local portal = utility
+        and utility:FindFirstChild("Teleporters")
+        and utility.Teleporters:FindFirstChild("Portal_to_Wc")
+        and utility.Teleporters.Portal_to_Wc:FindFirstChild("Collision")
+    if portal then
+        hrp.CFrame = portal.CFrame + Vector3.new(0,1,0)
+        task.wait()
+    end
+
+    -- 6️⃣ Serverhop
+    serverHop()
+end
+
+task.spawn(autoTeleportLoop)
