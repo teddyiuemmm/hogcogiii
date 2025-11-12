@@ -72,7 +72,7 @@ local function autoTeleportLoop()
     end
 
     -- 3️⃣ Chờ 143 giây
-    wait(143)
+    wait(148)
 
     -- 4️⃣ TP StopGame
     local stopGame = obbyColliders and obbyColliders:FindFirstChild("StopGame")
