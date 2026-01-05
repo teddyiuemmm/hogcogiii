@@ -6,100 +6,123 @@ local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 
 local function getRootPart()
-    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    return character:WaitForChild("HumanoidRootPart")
+    local c = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    return c:WaitForChild("HumanoidRootPart")
+end
+
+local function getIntTime(s)
+    return tonumber(s:match("^(%d+)"))
 end
 
 local function findNearestDefault()
-    local pickups = workspace:FindFirstChild("Pickups") or workspace:FindFirstChild("ActivePickups")
-    if not pickups then return nil end
-    local nearest, minDist = nil, math.huge
-    local hrpPos = getRootPart().Position
-    for _, v in ipairs(pickups:GetChildren()) do
+    local p = workspace:FindFirstChild("Pickups") or workspace:FindFirstChild("ActivePickups")
+    if not p then return nil end
+    local n, d = nil, math.huge
+    local pos = getRootPart().Position
+    for _, v in ipairs(p:GetChildren()) do
         if v:IsA("BasePart") and v.Name == "Default" then
-            local dist = (v.Position - hrpPos).Magnitude
-            if dist < minDist then
-                minDist = dist
-                nearest = v
+            local m = (v.Position - pos).Magnitude
+            if m < d then
+                d = m
+                n = v
             end
         end
     end
-    return nearest
+    return n
 end
 
 local function serverHop()
-    local success, result = pcall(function()
-        return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))
+    local ok, res = pcall(function()
+        return HttpService:JSONDecode(game:HttpGet(
+            "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
+        ))
     end)
-    if success and result and result.data then
-        for _, server in result.data do
-            if server.playing < server.maxPlayers and server.id ~= game.JobId then
-                TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id)
+    if ok and res and res.data then
+        for _, s in res.data do
+            if s.playing < s.maxPlayers and s.id ~= game.JobId then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id)
                 return
             end
         end
     end
 end
 
+local running = false
+
 local function autoTeleportLoop()
+    if running then return end
+    running = true
+
     local utility = workspace:FindFirstChild("Utility")
     local obbyColliders = utility and utility:FindFirstChild("ObbyColliders")
     local hrp = getRootPart()
 
-    -- TP GameStart
     if obbyColliders then
-        local gameStart = obbyColliders:FindFirstChild("GameStart")
-        if gameStart then
-            hrp.CFrame = gameStart.CFrame + Vector3.new(0, 1, 0)
+        local gs = obbyColliders:FindFirstChild("GameStart")
+        if gs then
+            hrp.CFrame = gs.CFrame + Vector3.new(0,1,0)
             task.wait()
         end
     end
 
-    -- Bám Default liên tục
-    while findNearestDefault() do
-        local nearest = findNearestDefault()
-        if nearest then
-            hrp.CFrame = nearest.CFrame + Vector3.new(0, 1, 0)
+    local timeTxt = LocalPlayer.PlayerGui:WaitForChild("PlayerUi")
+        .Base.ObbyDisplays.TimerBase.Time
+
+    while true do
+        local t = getIntTime(timeTxt.Text)
+        if t and t >= 148 then break end
+        local n = findNearestDefault()
+        if n then
+            hrp.CFrame = n.CFrame + Vector3.new(0,1,0)
         end
         task.wait()
     end
 
-    -- Chờ 148s
-    task.wait(148)
-
-    -- TP StopGame
-    local stopGame = obbyColliders and obbyColliders:FindFirstChild("StopGame")
-    if stopGame then
-        hrp.CFrame = stopGame.CFrame + Vector3.new(0, 1, 0)
+    local sg = obbyColliders and obbyColliders:FindFirstChild("StopGame")
+    if sg then
+        hrp.CFrame = sg.CFrame + Vector3.new(0,1,0)
         task.wait()
     end
 
-    -- TP Portal_to_Wc + check 160s timeout
     local portal = utility
         and utility:FindFirstChild("Teleporters")
         and utility.Teleporters:FindFirstChild("Portal_to_Wc")
         and utility.Teleporters.Portal_to_Wc:FindFirstChild("Collision")
 
     if portal then
-        hrp.CFrame = portal.CFrame + Vector3.new(0, 1, 0)
-        task.wait(0.5)
-
-        local startTime = tick()
-        while tick() - startTime < 160 do
-            if (getRootPart().Position - portal.Position).Magnitude < 10 then
-                break
-            end
-            task.wait(0.5)
-        end
-
+        hrp.CFrame = portal.CFrame + Vector3.new(0,1,0)
+        repeat
+            task.wait()
+            local t = getIntTime(timeTxt.Text)
+        until t and t >= 160
         if (getRootPart().Position - portal.Position).Magnitude >= 10 then
-            TeleportService:Teleport(game.PlaceId) -- rejoin nếu chưa tới portal
+            TeleportService:Teleport(game.PlaceId)
+            running = false
             return
         end
     end
 
-    -- Serverhop
     serverHop()
+    running = false
 end
 
 task.spawn(autoTeleportLoop)
+
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(1)
+    running = false
+    task.spawn(autoTeleportLoop)
+end)
+
+
+local function runUGC()
+    if not getgenv().OpenUGC then return end
+    local p = workspace:FindFirstChild("ROTARYUgc7")
+    p = p and p:FindFirstChild("RootPart")
+    p = p and p:FindFirstChild("ClaimPrompt")
+    if p then
+        fireproximityprompt(p)
+    end
+end
+
+runUGC()
