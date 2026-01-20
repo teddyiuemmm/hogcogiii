@@ -2,7 +2,6 @@ repeat task.wait() until game:IsLoaded()
 
 local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
-local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 
 local function getRootPart()
@@ -31,23 +30,11 @@ local function findNearestDefault()
     return n
 end
 
-local function serverHop()
-    local ok, res = pcall(function()
-        return HttpService:JSONDecode(game:HttpGet(
-            "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
-        ))
-    end)
-    if ok and res and res.data then
-        for _, s in res.data do
-            if s.playing < s.maxPlayers and s.id ~= game.JobId then
-                TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id)
-                return
-            end
-        end
-    end
-end
-
 local running = false
+
+local function rejoin()
+    TeleportService:Teleport(game.PlaceId)
+end
 
 local function autoTeleportLoop()
     if running then return end
@@ -91,18 +78,18 @@ local function autoTeleportLoop()
 
     if portal then
         hrp.CFrame = portal.CFrame + Vector3.new(0,1,0)
-        repeat
-            task.wait()
+        repeat task.wait()
             local t = getIntTime(timeTxt.Text)
         until t and t >= 160
+
         if (getRootPart().Position - portal.Position).Magnitude >= 10 then
-            TeleportService:Teleport(game.PlaceId)
+            rejoin()
             running = false
             return
         end
     end
 
-    serverHop()
+    rejoin()
     running = false
 end
 
@@ -113,7 +100,6 @@ LocalPlayer.CharacterAdded:Connect(function()
     running = false
     task.spawn(autoTeleportLoop)
 end)
-
 
 local function runUGC()
     if not getgenv().OpenUGC then return end
