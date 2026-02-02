@@ -1,23 +1,23 @@
 repeat task.wait() until game:IsLoaded()
 
-local Players = game:GetService("Players")
-local TeleportService = game:GetService("TeleportService")
-local LocalPlayer = Players.LocalPlayer
+local v1 = game:GetService("Players")
+local v2 = game:GetService("TeleportService")
+local v3 = v1.LocalPlayer
 
-local function getRootPart()
-    local c = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local function v4()
+    local c = v3.Character or v3.CharacterAdded:Wait()
     return c:WaitForChild("HumanoidRootPart")
 end
 
-local function getIntTime(s)
+local function v5(s)
     return tonumber(s:match("^(%d+)"))
 end
 
-local function findNearestDefault()
+local function v6()
     local p = workspace:FindFirstChild("Pickups") or workspace:FindFirstChild("ActivePickups")
     if not p then return nil end
     local n, d = nil, math.huge
-    local pos = getRootPart().Position
+    local pos = v4().Position
     for _, v in ipairs(p:GetChildren()) do
         if v:IsA("BasePart") and v.Name == "Default" then
             local m = (v.Position - pos).Magnitude
@@ -30,85 +30,53 @@ local function findNearestDefault()
     return n
 end
 
-local running = false
+local v7 = false
 
-local function rejoin()
-    TeleportService:Teleport(game.PlaceId)
+local function v8()
+    v2:Teleport(game.PlaceId)
 end
 
-local function autoTeleportLoop()
-    if running then return end
-    running = true
+local function v9()
+    local h = v4()
+    firetouchinterest(h, workspace.Utility.ObbyColliders.GameStart, 0)
+    firetouchinterest(h, workspace.Utility.ObbyColliders.GameStart, 1)
+end
 
-    local utility = workspace:FindFirstChild("Utility")
-    local obbyColliders = utility and utility:FindFirstChild("ObbyColliders")
-    local hrp = getRootPart()
+local function v10()
+    local h = v4()
+    firetouchinterest(h, workspace.Utility.ObbyColliders.GameStop.Collider, 0)
+    firetouchinterest(h, workspace.Utility.ObbyColliders.GameStop.Collider, 1)
+end
 
-    if obbyColliders then
-        local gs = obbyColliders:FindFirstChild("GameStart")
-        if gs then
-            hrp.CFrame = gs.CFrame + Vector3.new(0,1,0)
-            task.wait()
-        end
-    end
+local function v11()
+    if v7 then return end
+    v7 = true
 
-    local timeTxt = LocalPlayer.PlayerGui:WaitForChild("PlayerUi")
+    v9()
+    task.wait(0.2)
+
+    local v12 = v3.PlayerGui:WaitForChild("PlayerUi")
         .Base.ObbyDisplays.TimerBase.Time
 
     while true do
-        local t = getIntTime(timeTxt.Text)
+        local t = v5(v12.Text)
         if t and t >= 148 then break end
-        local n = findNearestDefault()
+        local n = v6()
         if n then
-            hrp.CFrame = n.CFrame + Vector3.new(0,1,0)
+            v4().CFrame = n.CFrame + Vector3.new(0,1,0)
         end
         task.wait()
     end
 
-    local sg = obbyColliders and obbyColliders:FindFirstChild("StopGame")
-    if sg then
-        hrp.CFrame = sg.CFrame + Vector3.new(0,1,0)
-        task.wait()
-    end
-
-    local portal = utility
-        and utility:FindFirstChild("Teleporters")
-        and utility.Teleporters:FindFirstChild("Portal_to_Wc")
-        and utility.Teleporters.Portal_to_Wc:FindFirstChild("Collision")
-
-    if portal then
-        hrp.CFrame = portal.CFrame + Vector3.new(0,1,0)
-        repeat task.wait()
-            local t = getIntTime(timeTxt.Text)
-        until t and t >= 160
-
-        if (getRootPart().Position - portal.Position).Magnitude >= 10 then
-            rejoin()
-            running = false
-            return
-        end
-    end
-
-    rejoin()
-    running = false
+    v10()
+    v8()
+    v7 = false
 end
 
-task.spawn(autoTeleportLoop)
+task.spawn(v11)
 
-LocalPlayer.CharacterAdded:Connect(function()
+v3.CharacterAdded:Connect(function()
     task.wait(1)
-    running = false
-    task.spawn(autoTeleportLoop)
+    v7 = false
+    task.spawn(v11)
 end)
-
-local function runUGC()
-    if not getgenv().OpenUGC then return end
-    local p = workspace:FindFirstChild("ROTARYUgc7")
-    p = p and p:FindFirstChild("RootPart")
-    p = p and p:FindFirstChild("ClaimPrompt")
-    if p then
-        fireproximityprompt(p)
-    end
-end
-
-runUGC()
