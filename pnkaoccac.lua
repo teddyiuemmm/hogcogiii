@@ -18,10 +18,13 @@ local function h(t)
     end)
 end
 
-local x = identifyexecutor and identifyexecutor()
+local x = "unknown"
+pcall(function()
+    x = identifyexecutor()
+end)
 
-if x and string.find(string.lower(x),"Delta") then
-    b:Label("If u use Delta, pls disable verify teleports in setting UI belong to Delta", Color3.fromRGB(255,0,0))
+if x and string.find(string.lower(x),"delta") then
+    b:Label("If u use Delta, pls disable verify teleports in setting UI belong to Delta", Color3.fromRGB(0,170,255))
 end
 
 local i = {}
