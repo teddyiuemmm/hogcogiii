@@ -1,6 +1,6 @@
 local a = loadstring(game:HttpGet("https://raw.githubusercontent.com/Turtle-Brand/Turtle-Lib/main/source.lua"))()
 
-local b = a:Window("pnka")
+local b = a:Window("🤫")
 
 local c = game:GetService("TeleportService")
 local d = game:GetService("Players")
@@ -11,11 +11,17 @@ local g = game:GetService("StarterGui")
 local function h(t)
     pcall(function()
         g:SetCore("SendNotification",{
-            Title="if u use delta, pls disable verify teleports in setting UI belong to delta",
+            Title="by pnka",
             Text=t,
             Duration=3
         })
     end)
+end
+
+local x = identifyexecutor and identifyexecutor()
+
+if x and string.find(string.lower(x),"Delta") then
+    b:Label("If u use Delta, pls disable verify teleports in setting UI belong to Delta", Color3.fromRGB(255,0,0))
 end
 
 local i = {}
