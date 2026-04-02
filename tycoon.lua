@@ -1,5 +1,3 @@
-_G.AutoFarm = not _G.AutoFarm
-
 if _G.AutoFarm then
     _G.Connection = game:GetService("RunService").Heartbeat:Connect(function()
         pcall(function()
