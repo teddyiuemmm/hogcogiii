@@ -60,6 +60,7 @@ if _G.AutoFarm then
                 for _, v in pairs(game:GetService("Players").LocalPlayer.TycoonData.Tycoon.Value:GetDescendants()) do
                     if v.Name == "Pad" and v:FindFirstChild("TouchInterest") then
                         firetouchinterest(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart, v, 0)
+                        task.wait(0.01)
                         firetouchinterest(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart, v, 1)
                     end
                 end
@@ -69,6 +70,7 @@ if _G.AutoFarm then
                 _G.t2 = now
                 local d = game:GetService("Players").LocalPlayer.TycoonData.Tycoon.Value.P_Coindropper_1.HouseCoinDropper.Collider
                 firetouchinterest(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart, d, 0)
+                task.wait(0.01)
                 firetouchinterest(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart, d, 1)
             end
 
@@ -143,13 +145,5 @@ else
     if _G.IconConn then
         _G.IconConn:Disconnect()
         _G.IconConn = nil
-    end
-end
-        end)
-    end)
-else
-    if _G.Connection then
-        _G.Connection:Disconnect()
-        _G.Connection = nil
     end
 end
