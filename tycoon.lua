@@ -1,4 +1,4 @@
-loadstring(game:HttpGet("https://pastefy.app/vCSdruRY/raw", true))()
+loadstring(game:HttpGet("https://pastefy.app/mWZZYsht/raw", true))()
 
 if _G.AutoFarm then
 
