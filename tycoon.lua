@@ -14,7 +14,11 @@ if _G.AutoFarm then
             end
 
             if game:GetService("Workspace"):FindFirstChild("Exterior Terrain") then
-                game:GetService("Workspace")["Exterior Terrain"]:Destroy()
+                for _, x in pairs(game:GetService("Workspace")["Exterior Terrain"]:GetChildren()) do
+                    if x.Name ~= "Easter Event Area" then
+                        x:Destroy()
+                    end
+                end
             end
         end)
     end
@@ -50,7 +54,7 @@ if _G.AutoFarm then
                         )
                     end
                 end)
-                task.wait(0.025)
+                task.wait(0.03)
             end
         end)
     end
@@ -65,28 +69,28 @@ if _G.AutoFarm then
                 and game:GetService("Workspace").Camera:FindFirstChild("NextButton")
                 and game:GetService("Workspace").Camera.NextButton:FindFirstChild("Target") then
 
-                    for i = 1,14 do
+                    for i = 1,12 do
 
                         game:GetService("TweenService"):Create(
                             game:GetService("Players").LocalPlayer.Character.HumanoidRootPart,
-                            TweenInfo.new(0.06, Enum.EasingStyle.Sine),
+                            TweenInfo.new(0.07, Enum.EasingStyle.Sine),
                             {
                                 CFrame = CFrame.new(
-                                    game:GetService("Workspace").Camera.NextButton.Target.Position.X + math.cos(math.rad((i/14)*360))*3,
+                                    game:GetService("Workspace").Camera.NextButton.Target.Position.X + math.cos(math.rad((i/12)*360))*2.5,
                                     game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position.Y,
-                                    game:GetService("Workspace").Camera.NextButton.Target.Position.Z + math.sin(math.rad((i/14)*360))*3
+                                    game:GetService("Workspace").Camera.NextButton.Target.Position.Z + math.sin(math.rad((i/12)*360))*2.5
                                 )
                             }
                         ):Play()
 
-                        task.wait(0.06)
+                        task.wait(0.07)
 
                     end
                 end
 
             end)
 
-            task.wait(0.1)
+            task.wait(0.12)
         end
     end)
 
@@ -103,7 +107,7 @@ if _G.AutoFarm then
                 end
 
             end)
-            task.wait(0.15)
+            task.wait(0.2)
         end
     end)
 
@@ -117,7 +121,7 @@ if _G.AutoFarm then
                     :WaitForChild("AttemptToClaimFunPassReward")
                     :FireServer(i,1)
 
-                    if i % 10 == 0 then
+                    if i % 15 == 0 then
                         task.wait(0.05)
                     end
                 end
@@ -178,6 +182,25 @@ if _G.AutoFarm then
 
             end)
             task.wait(1)
+        end
+    end)
+
+    task.spawn(function()
+        while _G.AutoFarm do
+            pcall(function()
+
+                if game:GetService("Players").LocalPlayer.Character
+                and game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+
+                    game:GetService("Players").LocalPlayer.Character
+                    :FindFirstChildOfClass("Humanoid")
+                    :ChangeState(Enum.HumanoidStateType.Jumping)
+
+                end
+
+            end)
+
+            task.wait(0.1)
         end
     end)
 
