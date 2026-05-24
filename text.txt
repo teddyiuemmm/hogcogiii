@@ -1,0 +1,151 @@
+local Library = loadstring(Game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/wizard"))()
+local Window = Library:NewWindow("Free UGC Obby")
+local Tab = Window:NewSection("Main")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local player = Players.LocalPlayer
+
+local function JoinOldServer()
+    local sfUrl = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100"
+
+    local success, result = pcall(function()
+        return game:HttpGet(sfUrl)
+    end)
+
+    if success then
+        local decoded = HttpService:JSONDecode(result)
+
+        if decoded and decoded.data then
+            for _, server in pairs(decoded.data) do
+                if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                    TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, player)
+                    return
+                end
+            end
+        end
+    end
+end
+
+local running = false
+local done = false
+
+Tab:CreateToggle("Auto Stage", function(value)
+    running = value
+    done = false
+
+    if running then
+        task.spawn(function()
+            local player = game:GetService("Players").LocalPlayer
+
+            while running do
+                local text = player.PlayerGui.UI.TopBar["Progress Bar"]["Prograss Bar"].TextLabel.Text
+                local stage = tonumber(text:match("^(%d+)"))
+
+                -- khi xong 8/8
+                if text:find("8/8") and not done then
+                    done = true
+                    running = false
+
+                    -- kill player
+                    local humanoid = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
+                    if humanoid then
+                        humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+                    else
+                        player.Character:BreakJoints()
+                    end
+
+                    -- SKIP EVENT
+                    local skipEvent = ReplicatedStorage:FindFirstChild("Events")
+                        and ReplicatedStorage.Events:FindFirstChild("SkipTimerEvent")
+
+                    if skipEvent then
+                        skipEvent:FireServer()
+                    end
+
+                    break
+                end
+
+                -- auto stage
+                if stage then
+                    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                    local cp = workspace.Checkpoints:FindFirstChild(tostring(stage + 1))
+
+                    if hrp and cp then
+                        firetouchinterest(hrp, cp, 0)
+                        firetouchinterest(hrp, cp, 1)
+                    end
+                end
+
+                task.wait(0.1)
+            end
+        end)
+    end
+end)
+
+Tab:CreateButton("Claim All / Skip", function()
+    -- 1
+    pcall(function()
+        ReplicatedStorage:WaitForChild("UpdateClaimUI", 9e9):FireServer()
+    end)
+
+    -- 2
+    pcall(function()
+        ReplicatedStorage:WaitForChild("Remotes", 9e9)
+            :WaitForChild("Gifts", 9e9)
+            :WaitForChild("Claim", 9e9)
+            :FireServer()
+    end)
+
+    -- 3
+    pcall(function()
+        ReplicatedStorage:WaitForChild("ClaimEvent", 9e9):FireServer()
+    end)
+
+    -- 4
+    pcall(function()
+        ReplicatedStorage:WaitForChild("Events", 9e9)
+            :WaitForChild("SkipTimerEvent", 9e9)
+            :FireServer()
+    end)
+
+    -- 5
+    pcall(function()
+        ReplicatedStorage:WaitForChild("Events", 9e9)
+            :WaitForChild("Timer2CompletedEvent", 9e9)
+            :FireServer()
+    end)
+end)
+
+Tab:CreateButton("TP Pos 1", function()
+    game:GetService("Players").LocalPlayer.Character:PivotTo(
+        CFrame.new(5908, 1366, 3)
+    )
+end)
+
+Tab:CreateButton("TP Pos 2", function()
+    game:GetService("Players").LocalPlayer.Character:PivotTo(
+        CFrame.new(6268, 1366, 3)
+    )
+end)
+
+Tab:CreateButton("TP Pos 3", function()
+    game:GetService("Players").LocalPlayer.Character:PivotTo(
+        CFrame.new(6592, 1366, 4)
+    )
+end)
+
+local Tab = Window:NewSection("Setting")
+
+Tab:CreateButton("Rejoin", function()
+    if #Players:GetPlayers() <= 1 then
+        TeleportService:Teleport(game.PlaceId, player)
+    else
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, player)
+    end
+end)
+
+Tab:CreateButton("Join Old Server", function()
+    JoinOldServer()
+end)
